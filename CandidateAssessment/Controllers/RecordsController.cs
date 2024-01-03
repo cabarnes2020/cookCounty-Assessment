@@ -13,10 +13,12 @@ namespace CandidateAssessment.Controllers
     {
         private StudentService _studentService;
         private SchoolService _schoolService;
-        public RecordsController(StudentService studentService, SchoolService schoolService)
+        private StudentOrganizationService _studentOrgService;
+        public RecordsController(StudentService studentService, SchoolService schoolService, StudentOrganizationService studentOrgService)
         {
             _studentService = studentService;
             _schoolService = schoolService;
+            _studentOrgService = studentOrgService;
         }
 
         public IActionResult Students()
@@ -49,64 +51,8 @@ namespace CandidateAssessment.Controllers
         [HttpPost]
         public IActionResult SaveStudent(Student model)
         {
-           //Initialize sql connection for saving new student model to db
-            using(SqlConnection connection = new SqlConnection("Server=tcp:applicanttest.database.windows.net,1433;Initial Catalog=ApplicantTest;Persist Security Info=False;User ID=user2023;Password=C00kC0unty2023"))
-            {
-                //Created insert query for new student model
-                string insertStudentQuery = "INSERT INTO dbo.Students (SchoolId, FirstName, LastName, Email, Age) VALUES (@SchoolId, @FirstName, @LastName, @Email, @Age)";
-                using(SqlCommand command = new SqlCommand(insertStudentQuery, connection))
-                {
-                    connection.Open();
-                    command.Parameters.AddWithValue("@SchoolId", model.SchoolId);
-                    command.Parameters.AddWithValue("@FirstName", model.FirstName);
-                    command.Parameters.AddWithValue("@LastName", model.LastName);
-                    command.Parameters.AddWithValue("@Email", model.Email);
-                    command.Parameters.AddWithValue("@Age", model.Age);
-
-                   //Executed query command to save new student model to db
-                    int result = command.ExecuteNonQuery();
-                    
-                    if(result < 0)
-                        Console.WriteLine("Error inserting data into Database!");
-
-                   
-                }  
-            }
-
-
-            var students = _studentService.GetStudents().OrderBy(s => s.LastName);
-            //Query expression that grabs id of the newly saved student from the above insert query
-            var newStudent = 
-                from student in students 
-                where student.FirstName == model.FirstName && student.LastName == model.LastName
-                select student.StudentId;
-            
-            //Initalize sql connection for saving possible org assignments of the new student to the db
-            using(SqlConnection orgAssignmentConnection = new SqlConnection("Server=tcp:applicanttest.database.windows.net,1433;Initial Catalog=ApplicantTest;Persist Security Info=False;User ID=user2023;Password=C00kC0unty2023"))
-            {
-                //Insert query for org assignments
-                string insertOrgQuery = "INSERT INTO dbo.OrgAssignments ([StudentOrgId], [StudentId]) VALUES (@StudentOrgId, @StudentId)";
-                using(SqlCommand orgCommand = new SqlCommand(insertOrgQuery, orgAssignmentConnection))
-                {
-                    orgAssignmentConnection.Open();
-                    orgCommand.Parameters.Add(new SqlParameter("@StudentOrgId", System.Data.SqlDbType.Int));
-                    orgCommand.Parameters.Add(new SqlParameter("@StudentId", System.Data.SqlDbType.Int));
-
-                    //Loop through each studentOrg that the new student selected, 
-                    //and append the studentId and studentOrgId to their respective parameters
-                    for(int i = 0; i < model.SelectedOrgs.Count(); i++){
-                        orgCommand.Parameters[0].Value = model.SelectedOrgs[i];
-                        orgCommand.Parameters[1].Value = newStudent.First();
-
-                        //Execute insert query for each org that was selected
-                        int orgResult = orgCommand.ExecuteNonQuery();
-                        if(orgResult < 0)
-                        Console.WriteLine("Error inserting org assignments into Database!");
-                    }
-
-                    orgAssignmentConnection.Close();
-                }          
-            }
+            //Sent model to student service to handle "saving to db" logic
+            _studentService.CreateStudent(model);
             return RedirectToAction("Students");
         }
 
@@ -147,32 +93,16 @@ namespace CandidateAssessment.Controllers
             //Initialize List of select items to form multi-select list
             var options = new List<SelectListItem>();
            
-           //list of students to perform query on
-            var students = _studentService.GetStudents().OrderBy(s => s.FirstName);
+           //collection of all studentOrgs within the database
+            var studentOrgs = _studentOrgService.GetStudentOrgs().OrderBy(so => so.OrgName);
 
-            //query used to grab each orgAssignment on each student
-            var studentOrgs = 
-                from student in students
-                select student.OrgAssignments;
-
-            //A HashSet variable used to hold each distinct studentOrg within the database
-            var distinctOrgs = new HashSet<StudentOrganization>();
-
-            //Used a double for loop to extract nested studentOrgs into the hashset, 
+            //Loop used to convert each studentOrg in the collection, to a list item in the dropdown menu, 
             foreach(var org in studentOrgs){
-                foreach(var o in org){
-                    distinctOrgs.Add(o.StudentOrg);
-                }
-            }
-
-            //Looped over hashset to create a list item for each distinct studentOrg within the set 
-            foreach(var org in distinctOrgs){
                 options.Add(new SelectListItem {
                     Text = org.OrgName,
-                    Value = org.Id.ToString()
+                    Value = org.Id.ToString(),
                 });
             }
-
             return new MultiSelectList(options, "Value", "Text");
         }
     }
