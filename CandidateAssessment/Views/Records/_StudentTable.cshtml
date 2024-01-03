@@ -1,0 +1,38 @@
+﻿@model IEnumerable<Student>
+
+<table class="table table-hover table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Student Orgs</th>
+            <th>School</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var student in Model)
+        {
+            <tr>
+                <td>@student.LastName, @student.FirstName</td>
+                <td>@student.Email</td>
+                <td>@student.Age</td>
+                <td>
+                    @if (student.OrgAssignments.Any())
+                    {
+                        <text>
+                            @Html.Raw(
+                                string.Join("<br/>", @student.OrgAssignments.Select(oa => oa.StudentOrg.OrgName))
+                            )
+                        </text>
+                    }
+                    else
+                    {
+                        <text>None</text>
+                    }
+                </td>
+                <td>@student.School.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>

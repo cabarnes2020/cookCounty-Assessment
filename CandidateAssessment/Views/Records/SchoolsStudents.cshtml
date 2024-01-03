@@ -1,0 +1,22 @@
+@model CandidateAssessment.Models.School
+
+@* HTML file that represents the table of students that is rendered when clicking the link within the Schools table*@
+<table class="table table-hover table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var student in Model.Students)
+        {
+            <tr>
+                <td>@student.LastName, @student.FirstName</td>
+                <td>@student.Email</td>
+                <td>@student.Age</td
+            </tr>
+        }
+    </tbody>
+</table>

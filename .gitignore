@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/ApplicantTest/bin/Debug/net6.0
+/ApplicantTest/obj
+/.vs/Applicant-Test/v17
+/.vs/ApplicantTest/DesignTimeBuild
+/.vs/ApplicantTest/v17
+/.vs
+/CandidateAssessment/bin/Debug/net6.0
+/CandidateAssessment/obj
+/CandidateAssessment/appsettingsREAL.json

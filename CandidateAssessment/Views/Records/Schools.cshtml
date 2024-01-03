@@ -1,0 +1,25 @@
+﻿@model IEnumerable<School>
+
+<h1>Schools</h1>
+
+<table class="table table-hover table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>City</th>
+            <th>State</th>
+            <th>Students</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var school in Model)
+        {
+            <tr>
+                <td>@school.Name</td>
+                <td>@school.City</td>
+                <td>@school.State</td>
+                <td><a href="/Records/SchoolsStudents?id=@school.SchoolId">@school.Students.Count</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
